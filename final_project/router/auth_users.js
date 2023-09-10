@@ -1,24 +1,14 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-let books = require("./booksdb.js");
-const session = require('express-session');
-const regd_users = express.Router();
+const express = require('express')
+const jwt = require('jsonwebtoken')
+let books = require('./booksdb.js')
+const session = require('express-session')
+const regd_users = express.Router()
 
-let users = [];
+let users = []
 
-const isValid = (username)=>{ //returns boolean
-  let userswithsamename = users.filter((user) => {
-    return user.username === username
-  })
-  if (userswithsamename.length > 0) {
-    return true
-  } else {
-    return false
-  }
-}
-
-const authenticatedUser = (username,password)=>{ //returns boolean
-//write code to check if username and password match the one we have in records.
+const authenticatedUser = (username, password) => {
+  //returns boolean
+  //write code to check if username and password match the one we have in records.
   let validusers = users.filter((user) => {
     return user.username === username && user.password === password
   })
@@ -28,36 +18,69 @@ const authenticatedUser = (username,password)=>{ //returns boolean
     return false
   }
 }
-const app = express();
-app.use(session({secret:"fingerprint"}, resave=true, saveUninitialized=true))
-app.use(express.json());
+const app = express()
+app.use(
+  session(
+    { secret: 'fingerprint' },
+    (resave = true),
+    (saveUninitialized = true)
+  )
+)
+app.use(express.json())
 //only registered users can login
-regd_users.post("/login", (req,res) => {
+regd_users.post('/login', (req, res) => {
   const username = req.body.username
   const password = req.body.password
-  if(!isValid(username)){
-    return res.status(300).json({message: `invalid username and password !`})
-  }
-  if(authenticatedUser(username, password)){
-    let accessToken = jwt.sign({
-      data: password
-    },'access', { expiresIn: '1h' });
 
-    req.session.authorization ={
-      accessToken, username
+  if (authenticatedUser(username, password)) {
+    let accessToken = jwt.sign(
+      {
+        data: password,
+      },
+      'access',
+      { expiresIn: '1h' }
+    )
+
+    req.session.authorization = {
+      accessToken,
+      username,
     }
-    return res.status(200).json({message: "login successful !", accessToken})
-  }else{
-    return res.status(300).json({message: "invalid username and password !"});
+    return res.status(200).json({ message: 'login successful !', accessToken })
+  } else {
+    return res.status(300).json({ message: 'invalid username and password !' })
   }
-});
+})
 
 // Add a book review
-regd_users.put("/auth/review/:isbn", (req, res) => {
+regd_users.put('/auth/review/:isbn', (req, res) => {
   //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
-});
+  const ISBN = req.params.isbn
+  const review = req.query.review
+  const username = req.session.authorization.username
+  if (books[ISBN].reviews) {
+    const existingReview = () => {
+      for (const key in books[ISBN].reviews) {
+        return books[ISBN].reviews[key].username === username
+      }
+    }
+    if (existingReview.length > 0) {
+      existingReview[0].review = review
+    } else {
+      books[ISBN].reviews.username = {
+        username,
+        review,
+      }
+    }
+  } else {
+    books[ISBN].reviews.username = [
+      {
+        username,
+        review
+      },
+    ]
+  }
+  return res.status(300).json({ message: 'Review added successfully' })
+})
 
-module.exports.authenticated = regd_users;
-module.exports.isValid = isValid;
-module.exports.users = users;
+module.exports.authenticated = regd_users
+module.exports.users = users
