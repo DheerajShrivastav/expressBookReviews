@@ -37,32 +37,43 @@ public_users.get('/', async function (req, res) {
 })
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn', function (req, res) {
-  const ISBN = req.params.isbn
-  return res.status(300).json(books[ISBN])
+public_users.get('/isbn/:isbn', async function (req, res) {
+  try {
+    const ISBN = req.params.isbn
+    return res.status(300).json(books[ISBN])
+  } catch (error) {
+    console.error('Error fetching book details', error)
+    return res.status(500).json({ message: 'Unable to fetch book details' })
+  }
+  
 })
 
 // Get book details based on author
 public_users.get('/author/:author', function (req, res) {
-  //Write your code here
-  const author = req.params.author
-  const filteredBooks = []
+  try {
+    const author = req.params.author
+    const filteredBooks = []
 
-  for (const key in books) {
-    if (books.hasOwnProperty(key)) {
-      const book = books[key]
-      if (book.author === author) {
-        filteredBooks.push(book)
+    for (const key in books) {
+      if (books.hasOwnProperty(key)) {
+        const book = books[key]
+        if (book.author === author) {
+          filteredBooks.push(book)
+        }
       }
     }
+    return res.status(300).json(filteredBooks)
+  } catch (error) {
+    console.error('Error fetching book details', error)
+    return res.status(500).json({ message: 'Unable to fetch books' })
   }
-  return res.status(300).json(filteredBooks)
+  
 })
 
 // Get all books based on title
 public_users.get('/title/:title', function (req, res) {
-  //Write your code here
-  const title = req.params.title
+  try{
+    const title = req.params.title
   const filteredBooks = []
   for (const key in books) {
     if (books.hasOwnProperty(key)) {
@@ -73,6 +84,10 @@ public_users.get('/title/:title', function (req, res) {
     }
   }
   return res.status(300).json(filteredBooks)
+}catch(error){
+  console.error('Error fetching book details', error)
+  return res.status(500).json({ message: 'Unable to fetch books' })
+}
 })
 
 //  Get book review
