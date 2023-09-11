@@ -80,6 +80,30 @@ regd_users.put('/auth/review/:isbn', (req, res) => {
     ]
   }
   return res.status(300).json({ message: 'Review added successfully' })
+
+})
+
+regd_users.delete('/auth/review/:isbn', (req, res) => {
+  //Write your code here
+  const ISBN = req.params.isbn
+  const username = req.session.authorization.username
+  if (books[ISBN].reviews) {
+    const existingReview = () => {
+      for (const key in books[ISBN].reviews) {
+        return books[ISBN].reviews[key].username === username
+      }
+    }
+    if (existingReview) {
+      delete books[ISBN].reviews.username
+      return res.status(300).json({ message: 'Review deleted successfully' })
+    } else {
+      return res.status(300).json({ message: 'Review not found' })
+    }
+  } else {
+    return res.status(300).json({ message: 'Review not found' })
+  
+  
+}
 })
 
 module.exports.authenticated = regd_users
